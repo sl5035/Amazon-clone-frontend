@@ -9,12 +9,88 @@ import {
 } from '@mui/material';
 import React, { FC, FormEvent } from 'react';
 import { Link } from 'react-router-dom';
+import useInput from '../../../hooks/input/use-input';
+import { validateEmail } from '../../../shared/utils/validation/email';
+import {
+  validateNameLength,
+  validatePasswordLength,
+} from '../../../shared/utils/validation/length';
+import { NewUser } from '../models/NewUser';
 
 const RegistrationFormComponent: FC = () => {
+  const {
+    text: name,
+    shouldDisplayError: nameHasError,
+    textChangeHandler: nameChangeHandler,
+    inputBlurHandler: nameBlurHandler,
+    clearHandler: nameClearHandler,
+  } = useInput(validateNameLength);
+
+  const {
+    text: email,
+    shouldDisplayError: emailHasError,
+    textChangeHandler: emailChangeHandler,
+    inputBlurHandler: emailBlurHandler,
+    clearHandler: emailClearHandler,
+  } = useInput(validateEmail);
+
+  const {
+    text: password,
+    shouldDisplayError: passwordHasError,
+    textChangeHandler: passwordChangeHandler,
+    inputBlurHandler: passwordBlurHandler,
+    clearHandler: passwordClearHandler,
+  } = useInput(validatePasswordLength);
+
+  const {
+    text: confirmPassword,
+    shouldDisplayError: confirmPasswordHasError,
+    textChangeHandler: confirmPasswordChangeHandler,
+    inputBlurHandler: confirmPasswordBlurHandler,
+    clearHandler: confirmPasswordClearHandler,
+  } = useInput(validatePasswordLength);
+
+  const clearForm = () => {
+    nameClearHandler();
+    emailClearHandler();
+    passwordClearHandler();
+    confirmPasswordClearHandler();
+  };
+
   const onSubmitHandler = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    console.log('Clicked');
+    if (password !== confirmPassword) {
+      return;
+    }
+
+    if (
+      nameHasError ||
+      emailHasError ||
+      passwordHasError ||
+      confirmPasswordHasError
+    ) {
+      return;
+    }
+
+    if (
+      name.length === 0 ||
+      email.length === 0 ||
+      password.length === 0 ||
+      confirmPassword.length === 0
+    ) {
+      return;
+    }
+
+    const newUser: NewUser = {
+      name,
+      email,
+      password,
+    };
+
+    console.log('NEW USER: ', newUser);
+
+    clearForm();
   };
 
   return (
@@ -40,6 +116,11 @@ const RegistrationFormComponent: FC = () => {
             Your name
           </InputLabel>
           <TextField
+            value={name}
+            onChange={nameChangeHandler}
+            onBlur={nameBlurHandler}
+            error={nameHasError}
+            helperText={nameHasError ? 'Enter your valid name' : ''}
             type="text"
             name="name"
             id="name"
@@ -54,7 +135,12 @@ const RegistrationFormComponent: FC = () => {
             Email
           </InputLabel>
           <TextField
-            type="text"
+            value={email}
+            onChange={emailChangeHandler}
+            onBlur={emailBlurHandler}
+            error={emailHasError}
+            helperText={emailHasError ? 'Enter your valid email' : ''}
+            type="email"
             name="email"
             id="email"
             variant="outlined"
@@ -68,7 +154,12 @@ const RegistrationFormComponent: FC = () => {
             Password
           </InputLabel>
           <TextField
-            type="text"
+            value={password}
+            onChange={passwordChangeHandler}
+            onBlur={passwordBlurHandler}
+            error={passwordHasError}
+            helperText={passwordHasError ? 'Minimum 4 characters required' : ''}
+            type="password"
             name="password"
             id="password"
             variant="outlined"
@@ -83,7 +174,16 @@ const RegistrationFormComponent: FC = () => {
             Re-enter password
           </InputLabel>
           <TextField
-            type="text"
+            value={confirmPassword}
+            onChange={confirmPasswordChangeHandler}
+            onBlur={confirmPasswordBlurHandler}
+            error={confirmPassword.length > 0 && password !== confirmPassword}
+            helperText={
+              confirmPassword.length > 0 && password !== confirmPassword
+                ? 'Passwords must match'
+                : ''
+            }
+            type="password"
             name="confirmPassword"
             id="confirmPassword"
             variant="outlined"
